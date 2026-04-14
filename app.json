@@ -9,15 +9,18 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.okyzaprabowo.todolist"
     },
     "android": {
+      "package": "com.okyzaprabowo.todolist",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "useNextNotificationsApi": true,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -27,6 +30,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
@@ -43,6 +47,16 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "notification": {
+      "vapidPublicKey": "BGHNHtDuWDhiDbmFZbtAOCm2d6b4EQMj1CDfP9DELdNHWGBZ0fGifFgdhzWqG7jaDDCpoLsI8cNsYiW2Ch9-5OU"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e6c5ceaa-d8e8-48d2-8710-4f52a7665cf5"
+      }
+    },
+    "owner": "okyzaprabowo"
   }
 }

@@ -1,112 +1,176 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { doc, setDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import {
+  clearExpoPushToken,
+  loadExpoPushToken,
+  saveExpoPushToken,
+} from '@/lib/expo-push-token-store';
+import { auth, db } from '@/lib/firebase';
+import { registerForPushNotifications, type PushTokenResult } from '@/lib/notifications';
 
-export default function TabTwoScreen() {
+export default function ExplorerScreen() {
+  const [result, setResult] = useState<PushTokenResult | null>(null);
+  const [savedToken, setSavedToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    loadExpoPushToken().then((saved) => {
+      if (saved?.token) setSavedToken(saved.token);
+    });
+  }, []);
+
+  const tokenToCopy = result?.token ?? savedToken;
+
+  const onRefreshToken = async () => {
+    setIsLoading(true);
+    try {
+      const next = await registerForPushNotifications();
+      setResult(next);
+
+      if (next.token) {
+        setSavedToken(next.token);
+        await saveExpoPushToken(next);
+
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, 'users', user.uid), { expoPushToken: next.token }, { merge: true });
+        }
+
+        Alert.alert('Berhasil', 'Expo push token berhasil diambil dan disimpan.');
+      } else {
+        Alert.alert('Gagal', next.error ?? 'Token tidak tersedia.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onCopy = async () => {
+    if (!tokenToCopy) {
+      Alert.alert('Expo Push Token', 'Token belum ada. Tekan "Ambil Token".');
+      return;
+    }
+    await Clipboard.setStringAsync(tokenToCopy);
+    Alert.alert('Berhasil', 'Token disalin.');
+  };
+
+  const onClear = async () => {
+    await clearExpoPushToken();
+    setSavedToken(null);
+    Alert.alert('Berhasil', 'Token tersimpan dihapus.');
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
+    <ThemedView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <ThemedText type="title">Explorer</ThemedText>
+
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <ThemedText type="subtitle">Expo Push Token</ThemedText>
+            <View style={styles.actionsRow}>
+              <Pressable style={styles.btn} onPress={onRefreshToken} disabled={isLoading}>
+                <ThemedText type="defaultSemiBold" style={styles.btnText}>
+                  {isLoading ? 'Loading...' : 'Ambil Token'}
+                </ThemedText>
+              </Pressable>
+              <Pressable style={styles.btn} onPress={onCopy} disabled={!tokenToCopy}>
+                <ThemedText type="defaultSemiBold" style={styles.btnText}>
+                  Copy
+                </ThemedText>
+              </Pressable>
+              <Pressable style={styles.btnDanger} onPress={onClear} disabled={!savedToken}>
+                <ThemedText type="defaultSemiBold" style={styles.btnText}>
+                  Clear
+                </ThemedText>
+              </Pressable>
+            </View>
+          </View>
+
+          <ThemedText style={styles.tokenText}>{tokenToCopy ?? '-'}</ThemedText>
+
+          {!!result?.error && <ThemedText style={styles.debugText}>Error: {result.error}</ThemedText>}
+          {!!result && (
+            <ThemedText style={styles.debugText}>
+              Debug: ownership={result.debug.appOwnership ?? '-'}, projectIdFromConfig=
+              {result.debug.projectIdFromConfig ?? '-'}, projectIdToUse={result.debug.projectIdToUse ?? '-'},
+              permission={result.debug.permissionStatus ?? '-'}
             </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+          )}
+
+          {!result?.token && !!savedToken && (
+            <ThemedText style={styles.debugText}>
+              Token di atas berasal dari penyimpanan lokal (AsyncStorage).
+            </ThemedText>
+          )}
+        </View>
+
+        <ThemedText style={styles.helpText}>
+          Untuk test kirim notif, buka: https://expo.dev/notifications lalu paste Expo Push Token.
+        </ThemedText>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
+  content: {
+    padding: 16,
+    gap: 12,
+  },
+  card: {
+    padding: 14,
+    backgroundColor: '#eff6ff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    gap: 10,
+  },
+  cardHeader: {
+    gap: 10,
+  },
+  actionsRow: {
     flexDirection: 'row',
     gap: 8,
+    flexWrap: 'wrap',
+  },
+  btn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  btnDanger: {
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  btnText: {
+    color: '#ffffff',
+    fontSize: 12,
+  },
+  tokenText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#1e3a8a',
+  },
+  debugText: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#334155',
+  },
+  helpText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#475569',
   },
 });

@@ -26,6 +26,7 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { auth, db } from '@/lib/firebase';
+import { scheduleLocalNotification } from '@/lib/notifications'; // [BARU]
 
 interface Todo {
   id: string;
@@ -85,6 +86,10 @@ export default function HomeScreen() {
       done: false,
       createdAt: Date.now(),
     });
+
+    // [BARU] Kirim local notification sebagai konfirmasi
+    await scheduleLocalNotification('Todo Ditambahkan!', `"${text}" berhasil disimpan.`);
+
     setNewTodoText('');
     setModalVisible(false);
   };
