@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "todolist",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.okyzaprabowo.todolist"
@@ -31,10 +31,11 @@
     "plugins": [
       "expo-router",
       "expo-notifications",
+      "react-native-maps",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/done.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

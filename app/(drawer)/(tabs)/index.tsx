@@ -26,7 +26,7 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { auth, db } from '@/lib/firebase';
-import { scheduleLocalNotification } from '@/lib/notifications'; // [BARU]
+import { scheduleLocalNotification } from '@/lib/notifications';
 
 interface Todo {
   id: string;
@@ -87,7 +87,6 @@ export default function HomeScreen() {
       createdAt: Date.now(),
     });
 
-    // [BARU] Kirim local notification sebagai konfirmasi
     await scheduleLocalNotification('Todo Ditambahkan!', `"${text}" berhasil disimpan.`);
 
     setNewTodoText('');
@@ -120,7 +119,6 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View>
           <ThemedText type="title">Todo List</ThemedText>
@@ -133,7 +131,6 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* List */}
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id}
@@ -153,9 +150,7 @@ export default function HomeScreen() {
               </View>
             </Pressable>
 
-            <ThemedText
-              style={[styles.todoText, item.done && styles.todoTextDone]}
-              numberOfLines={2}>
+            <ThemedText style={[styles.todoText, item.done && styles.todoTextDone]} numberOfLines={2}>
               {item.text}
             </ThemedText>
 
@@ -166,12 +161,10 @@ export default function HomeScreen() {
         )}
       />
 
-      {/* FAB */}
       <Pressable style={styles.fab} onPress={() => setModalVisible(true)}>
         <ThemedText style={styles.fabIcon}>+</ThemedText>
       </Pressable>
 
-      {/* Add Todo Modal */}
       <Modal
         visible={modalVisible}
         transparent
@@ -219,17 +212,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 56,
-    paddingBottom: 12,
   },
   emailText: {
-    fontSize: 13,
     color: '#64748b',
-    marginTop: 2,
+    marginTop: 4,
   },
   logoutButton: {
     backgroundColor: '#ef4444',
@@ -251,28 +243,29 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 80,
+    paddingVertical: 48,
   },
   emptyText: {
-    color: '#94a3b8',
     textAlign: 'center',
-    lineHeight: 24,
+    color: '#64748b',
   },
   todoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+    gap: 10,
   },
   todoItemDone: {
-    opacity: 0.5,
+    opacity: 0.7,
   },
   checkboxWrap: {
-    marginRight: 12,
+    padding: 4,
   },
   checkbox: {
     width: 22,
@@ -288,88 +281,80 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 14,
+    lineHeight: 16,
   },
   todoText: {
     flex: 1,
-    fontSize: 15,
+    color: '#0f172a',
   },
   todoTextDone: {
     textDecorationLine: 'line-through',
-    color: '#94a3b8',
+    color: '#64748b',
   },
   deleteWrap: {
-    marginLeft: 12,
-    padding: 4,
+    padding: 6,
   },
   deleteText: {
     color: '#ef4444',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 16,
   },
   fab: {
     position: 'absolute',
-    bottom: 32,
-    right: 24,
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    right: 18,
+    bottom: 18,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: '#2563eb',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    elevation: 4,
   },
   fabIcon: {
     color: '#ffffff',
-    fontSize: 32,
-    lineHeight: 36,
-    fontWeight: '300',
+    fontSize: 28,
+    lineHeight: 28,
   },
   overlay: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
   },
   overlayBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   modalCard: {
+    marginHorizontal: 18,
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    padding: 24,
+    padding: 16,
+    gap: 12,
   },
   modalTitle: {
-    marginBottom: 16,
-    color: '#1e293b',
+    marginBottom: 4,
   },
   modalInput: {
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 15,
-    color: '#1e293b',
-    marginBottom: 20,
+    color: '#0f172a',
   },
   modalActions: {
     flexDirection: 'row',
+    justifyContent: 'flex-end',
     gap: 10,
   },
   modalBtn: {
-    flex: 1,
     borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
   cancelBtn: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#e2e8f0',
   },
   addBtn: {
     backgroundColor: '#2563eb',
@@ -378,3 +363,4 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
+

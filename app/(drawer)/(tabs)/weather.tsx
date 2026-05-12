@@ -136,7 +136,9 @@ export default function WeatherScreen() {
             <View style={styles.grid}>
               <View style={styles.gridItem}>
                 <ThemedText style={styles.gridLabel}>Feels Like</ThemedText>
-                <ThemedText type="defaultSemiBold">{weather.current.feelslike_c.toFixed(1)}°C</ThemedText>
+                <ThemedText type="defaultSemiBold">
+                  {weather.current.feelslike_c.toFixed(1)}°C
+                </ThemedText>
               </View>
               <View style={styles.gridItem}>
                 <ThemedText style={styles.gridLabel}>Humidity</ThemedText>
@@ -273,3 +275,4 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
 });
+

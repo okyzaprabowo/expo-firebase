@@ -15,7 +15,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) router.replace('/(tabs)');
+      if (user) router.replace('/(drawer)/(tabs)');
     });
     return unsubscribe;
   }, [router]);
@@ -28,7 +28,7 @@ export default function LoginScreen() {
 
     try {
       await signInWithEmailAndPassword(auth, normalizedEmail, password);
-      router.replace('/(tabs)');
+      router.replace('/(drawer)/(tabs)');
     } catch (e: any) {
       const code = typeof e?.code === 'string' ? e.code : '';
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') {

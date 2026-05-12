@@ -136,11 +136,18 @@ export async function registerForPushNotifications(): Promise<PushTokenResult> {
     };
   } catch (e) {
     console.warn('Gagal mengambil Expo Push Token:', e);
+    const rawMessage = e instanceof Error ? e.message : String(e);
+    const needsFirebaseInit =
+      rawMessage.includes('Default FirebaseApp is not initialized') ||
+      rawMessage.includes('FirebaseApp.initializeApp');
+
     return {
       token: null,
       provider: 'expo',
       debug: debugBase,
-      error: e instanceof Error ? e.message : String(e),
+      error: needsFirebaseInit
+        ? 'Firebase native belum ter-setup untuk Android. Download google-services.json dari Firebase Console lalu taruh di root project, pastikan app.json punya expo.android.googleServicesFile="./google-services.json", lalu rebuild (npm run android).'
+        : rawMessage,
     };
   }
 }
